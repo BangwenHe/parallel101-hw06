@@ -34,9 +34,15 @@ void saxpy(T a, std::vector<T> &x, std::vector<T> const &y) {
     TICK(saxpy);
     tbb::parallel_for(tbb::blocked_range<size_t>(0, x.size()), 
     [&] (tbb::blocked_range<size_t> r) {
-        for (size_t i = r.begin(); i < r.end(); i++) {
-            x[i] = a * x[i] + y[i];
+        std::vector<T> local_x;
+        int begin = r.begin();
+        local_x.reserve(r.size());
+
+        for (size_t i = begin; i < r.end(); i++) {
+            local_x.push_back(a * x[i] + y[i]);
         }
+
+        std::copy(local_x.begin(), local_x.end(), x.begin() + begin);
     });
     TOCK(saxpy);
 }
